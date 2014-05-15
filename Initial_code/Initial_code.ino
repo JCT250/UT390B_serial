@@ -4,7 +4,67 @@ TinyGPS gps;
 
 long dist;
 char inchar;
-char inarray[] = "00000";
+String inarray = "                                                            ";
+int stt = 0;
+int edd = 0;
+
+void measure()
+{
+  Serial.println("Taking Measurement");
+  while(Serial3.available()) Serial3.read(); // Wipe the incoming buffer
+
+  Serial3.print("*11114#"); // Send the actual command to measure the distance
+  delay(20);
+  stt = 0;
+
+  for(int i = 0; i<inarray.length(); i++)
+  {
+    while(!Serial3.available())
+    {
+      ;
+    }
+    inarray[i] = Serial3.read();
+  }
+
+  if (inarray.substring(0,10) == "*00026062#") 
+  {
+    //Serial.println("Valid");
+  }
+  edd = inarray.lastIndexOf('#');
+  inarray.setCharAt(edd + 1,'\0');
+  inarray.setCharAt(edd - 1,'#');
+  inarray.setCharAt(edd - 2,'#');
+  inarray.trim();
+  //Serial.println(inarray);
+  stt = inarray.indexOf('*',10);
+  //Serial.print("len:");
+  //Serial.println(inarray.length());
+  //Serial.print("stt:");
+  //Serial.println(stt);
+
+  if(stt > 0)
+  {
+  // Serial.print("d1:");
+    String d1 = String(inarray.substring(stt+6));
+  //  Serial.println(d1);
+    int d2 = d1.toInt();
+  //  Serial.print("d2:");
+  //  Serial.println(d2);
+  }
+
+  for(int i=0; i<inarray.length(); i++)
+  {
+    inarray[i] = ' ';
+  }
+}
+
+void reposition()
+{
+  Serial.print(); // print horizontal angle
+  Serial.print(); // print vertical angle
+  Serial.print(d2); // print the distance
+  
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -12,38 +72,16 @@ void setup() {
   Serial3.begin(115200); //Serial port for the laser
 }
 
-
-
 void loop() {
   // put your main code here, to run repeatedly: 
 
-  if(Serial3.available())
-  {
-    inchar = Serial3.read();
-    if(inchar == 'D')
-    {     
-      inarray[0] = inchar;
-      for(int i = 1; i<5; i++)
-      {
-        inarray[i] = Serial3.read();
-      }
-      Serial.println(inarray);
-      if (strcmp(inarray, "Dist:")  == 0)  // test to see if the two strings are equal
-      {
-        dist == Serial3.parseInt();
-        Serial.print("Distance = ");
-        Serial.println(dist);
-      }
-      memset(inarray, 0, sizeof(inarray)); // fill the array with zeros to clear it
-
-      /*
-      Serial3.readBytesUntil(',',inarray,30);
-       Serial.print("D");
-       Serial.println(inarray);
-       */
-    }
-  }
-
+  delay(5000);
+  measure();
+  if(stt > 0) reposition();
 }
+
+
+
+
 
 
